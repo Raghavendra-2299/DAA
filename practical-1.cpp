@@ -1,20 +1,32 @@
 #include <iostream>
+#include <vector>
+#include <algorithm>
+#include <chrono>
 using namespace std;
+using namespace chrono;
 
 // Bubble Sort
-void bubbleSort(int a[], int n) {
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j < n - i - 1; j++) {
-            if (a[j] > a[j + 1]) {
+void bubbleSort(vector<int>& a) {
+    for (int i = 0; i < a.size() - 1; i++)
+        for (int j = 0; j < a.size() - i - 1; j++)
+            if (a[j] > a[j + 1])
                 swap(a[j], a[j + 1]);
-            }
-        }
+}
+
+// Selection Sort
+void selectionSort(vector<int>& a) {
+    for (int i = 0; i < a.size() - 1; i++) {
+        int min = i;
+        for (int j = i + 1; j < a.size(); j++)
+            if (a[j] < a[min])
+                min = j;
+        swap(a[i], a[min]);
     }
 }
 
 // Insertion Sort
-void insertionSort(int a[], int n) {
-    for (int i = 1; i < n; i++) {
+void insertionSort(vector<int>& a) {
+    for (int i = 1; i < a.size(); i++) {
         int key = a[i];
         int j = i - 1;
 
@@ -26,133 +38,100 @@ void insertionSort(int a[], int n) {
     }
 }
 
-// Selection Sort
-void selectionSort(int a[], int n) {
-    for (int i = 0; i < n - 1; i++) {
-        int min = i;
-
-        for (int j = i + 1; j < n; j++) {
-            if (a[j] < a[min])
-                min = j;
-        }
-
-        swap(a[i], a[min]);
-    }
-}
-
-// Merge function
-void merge(int a[], int left, int mid, int right) {
-    int temp[100];
-    int i = left, j = mid + 1, k = 0;
-
-    while (i <= mid && j <= right) {
-        if (a[i] < a[j])
-            temp[k++] = a[i++];
-        else
-            temp[k++] = a[j++];
-    }
-
-    while (i <= mid)
-        temp[k++] = a[i++];
-
-    while (j <= right)
-        temp[k++] = a[j++];
-
-    for (i = left, k = 0; i <= right; i++, k++)
-        a[i] = temp[k];
-}
-
 // Merge Sort
-void mergeSort(int a[], int left, int right) {
-    if (left < right) {
-        int mid = (left + right) / 2;
+void mergeSort(vector<int>& a, int l, int r) {
+    if (l >= r) return;
 
-        mergeSort(a, left, mid);
-        mergeSort(a, mid + 1, right);
-        merge(a, left, mid, right);
+    int m = (l + r) / 2;
+    mergeSort(a, l, m);
+    mergeSort(a, m + 1, r);
+
+    vector<int> temp;
+    int i = l, j = m + 1;
+
+    while (i <= m && j <= r) {
+        if (a[i] < a[j])
+            temp.push_back(a[i++]);
+        else
+            temp.push_back(a[j++]);
     }
+
+    while (i <= m) temp.push_back(a[i++]);
+    while (j <= r) temp.push_back(a[j++]);
+
+    for (int k = 0; k < temp.size(); k++)
+        a[l + k] = temp[k];
 }
 
 // Quick Sort
-int partition(int a[], int low, int high) {
+void quickSort(vector<int>& a, int low, int high) {
+    if (low >= high) return;
+
     int pivot = a[high];
     int i = low - 1;
 
     for (int j = low; j < high; j++) {
-        if (a[j] < pivot) {
-            i++;
-            swap(a[i], a[j]);
-        }
+        if (a[j] < pivot)
+            swap(a[++i], a[j]);
     }
 
     swap(a[i + 1], a[high]);
-    return i + 1;
+    int p = i + 1;
+
+    quickSort(a, low, p - 1);
+    quickSort(a, p + 1, high);
 }
 
-void quickSort(int a[], int low, int high) {
-    if (low < high) {
-        int p = partition(a, low, high);
-
-        quickSort(a, low, p - 1);
-        quickSort(a, p + 1, high);
-    }
-}
-
-// Display array
-void display(int a[], int n) {
-    for (int i = 0; i < n; i++)
-        cout << a[i] << " ";
-    cout << endl;
-}
-
-// Main function
 int main() {
-    int a[100], n, choice;
+    int n = 100;
+    vector<int> arr(n);
 
-    cout << "Enter number of elements: ";
-    cin >> n;
-
-    cout << "Enter elements: ";
+    // Generate random numbers
     for (int i = 0; i < n; i++)
-        cin >> a[i];
+        arr[i] = rand() % 1000;
 
-    cout << "\nChoose Sorting Algorithm:\n";
-    cout << "1. Bubble Sort\n";
-    cout << "2. Insertion Sort\n";
-    cout << "3. Selection Sort\n";
-    cout << "4. Merge Sort\n";
-    cout << "5. Quick Sort\n";
-    cout << "Enter your choice: ";
-    cin >> choice;
+    cout << "Number of Elements = " << n << "\n\n";
 
-    switch (choice) {
-        case 1:
-            bubbleSort(a, n);
-            break;
+    vector<int> temp;
+    auto start = high_resolution_clock::now();
+    temp = arr;
+    bubbleSort(temp);
+    auto stop = high_resolution_clock::now();
+    cout << "Bubble Sort    : "
+         << duration_cast<microseconds>(stop - start).count()
+         << " microseconds\n";
 
-        case 2:
-            insertionSort(a, n);
-            break;
+    start = high_resolution_clock::now();
+    temp = arr;
+    selectionSort(temp);
+    stop = high_resolution_clock::now();
+    cout << "Selection Sort : "
+         << duration_cast<microseconds>(stop - start).count()
+         << " microseconds\n";
 
-        case 3:
-            selectionSort(a, n);
-            break;
+    start = high_resolution_clock::now();
+    temp = arr;
+    insertionSort(temp);
+    stop = high_resolution_clock::now();
+    cout << "Insertion Sort : "
+         << duration_cast<microseconds>(stop - start).count()
+         << " microseconds\n";
 
-        case 4:
-            mergeSort(a, 0, n - 1);
-            break;
+    start = high_resolution_clock::now();
+    temp = arr;
+    mergeSort(temp, 0, n - 1);
+    stop = high_resolution_clock::now();
+    cout << "Merge Sort     : "
+         << duration_cast<microseconds>(stop - start).count()
+         << " microseconds\n";
 
-        case 5:
-            quickSort(a, 0, n - 1);
-            break;
-
-        default:
-            cout << "Invalid choice!";
-            return 0;
-    }
-
-    cout << "\nSorted Array: ";
-    display(a, n);
+    start = high_resolution_clock::now();
+    temp = arr;
+    quickSort(temp, 0, n - 1);
+    stop = high_resolution_clock::now();
+    cout << "Quick Sort     : "
+         << duration_cast<microseconds>(stop - start).count()
+         << " microseconds\n";
 
     return 0;
 }
