@@ -1,0 +1,6 @@
+DFS Traversal: 0 1 3 4 2
+BFS Traversal: 0 1 2 3 4
+
+Execution Time:
+DFS: 2500 ns
+BFS: 1800 ns
